@@ -1,0 +1,87 @@
+<section>
+    <div class="container">
+        <table class="table mt-5">
+            <thead>
+                <tr>
+                    <th scope="col">Item</th>
+                    <th scope="col">Title</th>
+                    <th scope="col">Price</th>
+                    <th scope="col">Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{#each products}}
+                <tr id="row-{{this.product._id}}">
+
+                    <td><img style="width: 70px; height: 70px;" src="/product-images/{{this.product._id}}.jpg" alt="">
+                    </td>
+                    <td>{{this.product.name}}</td>
+                    <td>Rs.{{this.product.price}}</td>
+
+                    <td>
+                        <button class="btn btn-danger cart-item-count mr-3"
+                            onclick="changeQuantity('{{this._id}}','{{this.product._id}}',-1,'{{this.product.price}}')">-</button>
+                        <span id="{{this.product._id}}">{{this.quantity}}</span>
+                        <button class="btn btn-success cart-item-count ml-3"
+                            onclick="changeQuantity('{{this._id}}','{{this.product._id}}',1,'{{this.product.price}}')">+</button>
+                    </td>
+                    <td>
+                        <a href="cart/{{this._id}}/product/{{this.product._id}}/delete"
+                            class="btn btn-danger">Remove</a>
+                    </td>
+                </tr>
+                {{/each}}
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-end">
+            <div class="w-25 bg-light p-2 d-flex flex-column border rounded">
+                <div class="d-flex justify-content-between">
+                    <h4>Total</h4>
+                    <h5>Rs. <span id="total text-success">{{totalValue}}</span></h5>
+                </div>
+                <hr />
+                <a href="/place-order" class="btn btn-success me-0"><b>Place Order</b></a>
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+    function changeQuantity(cartId, proId, count, actualPrice) {
+        const counter = document.getElementById(proId);
+        let quantity = parseInt(counter.innerHTML)
+        const totalElement = document.getElementById("total")
+        let total = parseInt(totalElement.innerHTML)
+        let price = parseInt(actualPrice)
+
+        $.ajax({
+            url: '/change-product-quantity',
+            data: {
+                cart: cartId,
+                product: proId,
+                count: count,
+                quantity: quantity
+            },
+            method: 'post',
+            success: (response) => {
+                const { success, removeCart } = response
+                if (success && removeCart) {
+                    const row = document.getElementById(`row-${proId}`)
+                    alert("Product removed from cart")
+                    totalElement.innerText = total - price
+                    row.innerHTML = null
+                } else if (success) {
+                    counter.innerText = quantity + count
+                    console.log(total.innerHTML)
+                    if (count == 1) {
+                        totalElement.innerText = total + price
+                    } else {
+                        totalElement.innerText = total - price
+                    }
+
+                }
+
+            }
+        })
+    }
+
+</script>
